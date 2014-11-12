@@ -1,3 +1,18 @@
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmCompWks 
+   Caption         =   "Choose file and tab to compare"
+   ClientHeight    =   6255
+   ClientLeft      =   1050
+   ClientTop       =   2370
+   ClientWidth     =   4530
+   OleObjectBlob   =   "frmCompWks.frx":0000
+End
+Attribute VB_Name = "frmCompWks"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+
 Private Sub cboActiveWB_Change()
   SprawdzCombosy
 End Sub
@@ -24,8 +39,11 @@ Private Sub SprawdzCombosy()
   End With
 End Sub
 
-Private Sub CheckBox5_Click()
-
+Private Sub cboAllTabs_Click()
+    With Me
+        .cboActiveWks.Enabled = Not (.cboActiveWks.Enabled)
+        .cbo2ndWks.Enabled = Not (.cbo2ndWks.Enabled)
+    End With
 End Sub
 
 Private Sub cmdCancel_Click()
@@ -38,7 +56,7 @@ End Sub
 Private Sub cmdOK_Click()
     greenActiveWorkbookCompareWorksheets = Me.CheckBox1.Value
     greenWorkbooktoCompareWorksheets = Me.CheckBox2.Value
-    CompareAll = Me.CheckBox4.Value
+    CompareAll = Me.cboAllTabs.Value
     With Me
         .Tag = "False"
         .Height = 334
@@ -52,7 +70,7 @@ Dim sPomoc As String
 Dim WS As Worksheet
 Dim WB As Workbook
 
-'Wype≈Çnienie ComboBox'a cbo2ndWks nazwami arkuszy z drugiego, wybranego do por√≥wnania Workbooka.
+'Wype≥nienie ComboBox'a cbo2ndWks nazwami arkuszy z drugiego, wybranego do porÛwnania Workbooka.
 With Me.cbo2ndWB
     For i = 0 To .ListCount - 1
           If .Selected(i) Then

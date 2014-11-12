@@ -1,3 +1,4 @@
+Attribute VB_Name = "Comp_wks"
 Option Explicit
 
 Private Type UINT64
@@ -44,7 +45,7 @@ End Function
 '================================================================================
 ' Sub GetMemUsage
 '
-' Funkcja zwraca iloÅ›Ä‡ zajmowanego ramu przez Excela
+' Funkcja zwraca iloœæ zajmowanego ramu przez Excela
 '================================================================================
 Function GetMemUsage()
 Dim objSWbemServices As Object
@@ -58,7 +59,7 @@ End Function
 '================================================================================
 ' Sub Pomiar_Start
 '
-' Pobiera informacje do timerÃ³w, oraz iloÅ›Ä‡ pamiecie zajmowanej przez Excela z Funkcji GetMemUsage
+' Pobiera informacje do timerów, oraz iloœæ pamiecie zajmowanej przez Excela z Funkcji GetMemUsage
 '================================================================================
 Sub Pomiar_Start()
     QueryPerformanceFrequency uFreq
@@ -70,8 +71,8 @@ End Sub
 ' Sub Pomiar_Koniec
 '
 ' Wrzuca pomiar czasu wykonywania funkcji od momentu zainicjowania przez Pomiar_Start
-' do "Immediate", wraz z informacjami o iloÅ›ci zajmowanego miejsca w ramie przez Excela
-' na poczÄ…tku i na koÅ„cu wykonywania funkcji.
+' do "Immediate", wraz z informacjami o iloœci zajmowanego miejsca w ramie przez Excela
+' na pocz¹tku i na koñcu wykonywania funkcji.
 '================================================================================
 Sub Pomiar_Koniec(nr As Long)
     QueryPerformanceCounter uEnd
@@ -82,7 +83,7 @@ End Sub
 '================================================================================
 ' Sub CompareWorksheets()
 '
-' PorÃ³wnywanie dwÃ³ch otwartych arkuszy kalkulacyjnych, komÃ³rka po komÃ³rce.
+' Porównywanie dwóch otwartych arkuszy kalkulacyjnych, komórka po komórce.
 '================================================================================
 Sub CompareWorksheets(ByVal sA_WB As String, _
                       ByVal sA_WS As String, _
@@ -111,7 +112,7 @@ Dim wb1 As Workbook, wb2 As Workbook
 Dim bCzyZrobicRaport As Boolean
 Dim bCzyPrzeniescNaglowki As Boolean
 
-'WyÅ‚Ä…czenie wszystkich opcji spowalniajÄ…cych pracÄ™ Excela
+'Wy³¹czenie wszystkich opcji spowalniaj¹cych pracê Excela
 With Application
     .EnableEvents = False
     .DisplayAlerts = False
@@ -127,7 +128,7 @@ Pomiar_Start
 Set wb1 = Workbooks(sA_WB)
 Set wb2 = Workbooks(s2_WB)
 
-'Wymiary poszczegÃ³lnych arkuszy, czyli liczba kolumn i liczba wierszy
+'Wymiary poszczególnych arkuszy, czyli liczba kolumn i liczba wierszy
 With wb1.Sheets(sA_WS).UsedRange
     lRow_1 = .Rows.Count
     lColumn_1 = .Columns.Count
@@ -137,16 +138,16 @@ With wb2.Sheets(s2_WS).UsedRange
     lColumn_2 = .Columns.Count
 End With
 
-'wartoÅ›ci skrajne dla tablicy wynikowej/raportu
+'wartoœci skrajne dla tablicy wynikowej/raportu
 If lMaxR < lRow_2 Then lMaxR = lRow_2
-If (lMaxC < lColumn_2) Or (lMaxC > 200) Then lMaxC = lColumn_2 'zabezpieczenie przed bÅ‚Ä™dem w arkuszu (np. pokolorowany caÅ‚a kolumna, co zwraca bÄ™dne wartoÅ›ci dla UsedRange
+If (lMaxC < lColumn_2) Or (lMaxC > 200) Then lMaxC = lColumn_2 'zabezpieczenie przed b³êdem w arkuszu (np. pokolorowany ca³a kolumna, co zwraca bêdne wartoœci dla UsedRange
 
 'Zgranie danych z arkuszy do odpowiednich tablic
 ReDim tempA(1 To lRow_1, 1 To 1)
 ReDim tempB(1 To lRow_2, 1 To 1)
 ReDim tempRaport(1 To lRow_2, 1 To lColumn_2)
 
-'Licznik iloÅ›ci rÃ³Å¼nic jaka wystÄ…piÅ‚a miÄ™dzy porÃ³wnywanymi arkuszami
+'Licznik iloœci ró¿nic jaka wyst¹pi³a miêdzy porównywanymi arkuszami
 lDiffCount = 0
 
 lCount = lMaxC * lMaxR
@@ -165,8 +166,8 @@ With frmCompWks
     bGreen2ndWks = .CheckBox2.Value
 End With
 
-'WÅ‚aÅ›ciwa pÄ™tla porÃ³wnujÄ…ca ze sobÄ… dwa arkusze. Ten mechanizm porÃ³wnuje dzielÄ…c badanych obszar
-'na tyle fragmentÃ³w ile jest kolumn w danym zakresie.
+'W³aœciwa pêtla porównuj¹ca ze sob¹ dwa arkusze. Ten mechanizm porównuje dziel¹c badanych obszar
+'na tyle fragmentów ile jest kolumn w danym zakresie.
 If bCzyPrzeniescNaglowki = False Then
     i = 1
 Else
@@ -181,6 +182,7 @@ End If
 
 lTemp = 0
 
+'Sprawdzanie poszczególnymi kolumnami
 For lColumn = 1 To lMaxC
     wb1.Activate
     Set rTempRng = wb1.Sheets(sA_WS).Range(Cells(1, lColumn), Cells(lRow_1, lColumn))
@@ -193,20 +195,23 @@ For lColumn = 1 To lMaxC
     Set rTempRng = Nothing
     
     For lRow = i To lMaxR
-        'Wrzucanie do raportu informacji o #Errorach w arkuszach (nie wychwytuje #REF, co wynika z kolejnoÅ›ci wywoÅ‚ywania bÅ‚Ä™dÃ³w przez Excela.
+        'Wrzucanie do raportu informacji o #Errorach w arkuszach (nie wychwytuje #REF, co wynika z kolejnoœci wywo³ywania b³êdów przez Excela.
         If IsError(tempA(lRow, 1)) Then
             tempA(lRow, 1) = "Error"
         End If
         If IsError(tempB(lRow, 1)) Then
             tempB(lRow, 1) = "Error"
         End If
+        
         tempS1 = tempA(lRow, 1)
         tempS2 = tempB(lRow, 1)
+        
             'The most important part of macro - the TEST!
             If tempS1 <> tempS2 Then
                 lDiffCount = lDiffCount + 1
                 tempRaport(lRow, lColumn) = "'" & tempS1 & " <> " & tempS2
             End If
+            
             'Pushing date to ProgressBar object
             If lRow Mod lDzielnik = 0 Then
                 lTemp = lTemp + lDzielnik
@@ -215,7 +220,7 @@ For lColumn = 1 To lMaxC
     Next lRow
 Next lColumn
 
-'Zazielenianie komÃ³rek w ktÃ³rych nastapiÅ‚a zmiana w ActiveWorkbook
+'Zazielenianie komórek w których nastapi³a zmiana w ActiveWorkbook
 If bGreenActiveWks Then
     wb1.Activate
     Set rTempRng = wb1.Sheets(sA_WS).Range(Cells(1, 1), Cells(lRow, lColumn))
@@ -228,7 +233,7 @@ If bGreenActiveWks Then
     Next lRow
 End If
 
-'Zazielenianie komÃ³rek w ktÃ³rych nastapiÅ‚a zmiana w 2nd Workbook
+'Zazielenianie komórek w których nastapi³a zmiana w 2nd Workbook
 If bGreen2ndWks Then
     wb2.Activate
     Set rTempRng = wb2.Sheets(s2_WS).Range(Cells(1, 1), Cells(lRow, lColumn))
@@ -241,7 +246,7 @@ If bGreen2ndWks Then
     Next lRow
 End If
 
-'Zwolnienie pamiÄ™ci ze zbÄ™dnych Å›mieci
+'Zwolnienie pamiêci ze zbêdnych œmieci
 Set rTempRng = Nothing
 Unload frmCompWks
 Erase tempA, tempB
@@ -250,7 +255,7 @@ Call Pomiar_Koniec(1)
 
 Przygotowanie_Raportu nr_raportu:=lNrRaportu, czyNaglowki:=bCzyPrzeniescNaglowki, aRaport:=tempRaport, DiffCount:=lDiffCount
    
-'WÅ‚Ä…czenie wszystkich funkcjonalnoÅ›ci w Excelu spowrotem
+'W³¹czenie wszystkich funkcjonalnoœci w Excelu spowrotem
 With Application
     .EnableEvents = True
     .DisplayAlerts = True
@@ -265,14 +270,21 @@ End Sub
 '================================================================================
 ' Przygotowanie_Raportu(ByVal nr_raportu As Long, ByRef aRaport() As Variant, ByVal DiffCount As Long)
 '
-' Sub do przygotowywania raportu z porÃ³wnywania miÄ™dzy sobÄ… arkuszy. Na chwilÄ™ obecnÄ…
-' dostÄ™pne sÄ… dwa. Uruchamia siÄ™ to przekazujÄ…c parametr liczbowy (od 1 do 2).
+' Sub do przygotowywania raportu z porównywania miêdzy sob¹ arkuszy. Na chwilê obecn¹
+' dostêpne s¹ dwa. Uruchamia siê to przekazuj¹c parametr liczbowy (od 1 do 2).
 '================================================================================
-Sub Przygotowanie_Raportu(ByVal nr_raportu As Long, ByVal czyNaglowki As Boolean, ByRef aRaport() As Variant, ByVal DiffCount As Long)
+Sub Przygotowanie_Raportu(ByVal nr_raportu As Long, _
+                          ByVal czyNaglowki As Boolean, _
+                          ByRef aRaport() As Variant, _
+                          ByVal DiffCount As Long)
 
-Dim tempRapKol() As Variant, tempRap() As Long
+
 Dim lColumn As Long, lRow As Long, i As Long, xR As Long
+
 Dim rptWB As Workbook
+
+'temp variables
+Dim tempRapKol() As Variant, tempRap() As Long
 Dim tempS1 As String, lTemp As String
 Dim rTempCell As Range
 
@@ -289,7 +301,7 @@ Else
 End If
 
 Select Case nr_raportu
-'Przygotowanie raportu z porÃ³wnania - wersja #1
+'Przygotowanie raportu z porównania - wersja #1
 Case 1
     Application.StatusBar = "Formatting the report (Style #" & nr_raportu & ")"
     ReDim tempRapKol(1 To UBound(aRaport, 1), 1 To 4)
@@ -303,22 +315,22 @@ Case 1
                 tempRapKol(lTemp, 3) = "'" & Mid(aRaport(lRow, lColumn), 2, InStr(aRaport(lRow, lColumn), "<>") - 3)
                 tempRapKol(lTemp, 4) = "'" & Right(aRaport(lRow, lColumn), Len(aRaport(lRow, lColumn)) - InStr(aRaport(lRow, lColumn), "<>") - 2)
                 lTemp = lTemp + 1
-                'ActiveCell.FormulaR1C1 = "JakiÅ› link"
-                'ActiveSheet.Hyperlinks.Add Anchor:=Selection, Address:="124_porownywaczMoj.xlsm", TextToDisplay:="JakiÅ› link"
+                'ActiveCell.FormulaR1C1 = "Jakiœ link"
+                'ActiveSheet.Hyperlinks.Add Anchor:=Selection, Address:="124_porownywaczMoj.xlsm", TextToDisplay:="Jakiœ link"
             End If
         Next lColumn
     Next lRow
     
-    'wrzucanie poszczegÃ³lnymi kolumnami do arkusza
+    'wrzucanie poszczególnymi kolumnami do arkusza
     With ActiveSheet
-        Range("A1").Value2 = "Adres komÃ³rki"
+        Range("A1").Value2 = "Adres komórki"
         Range("B1").Value2 = "MEMBER"
-        Range("C1").Value2 = "WartoÅ›Ä‡ z arkusza #1"
-        Range("D1").Value2 = "WartoÅ›Ä‡ z arkusza #2"
+        Range("C1").Value2 = "Wartoœæ z arkusza #1"
+        Range("D1").Value2 = "Wartoœæ z arkusza #2"
     End With
     Range(Cells(2, 1), Cells(UBound(tempRapKol, 1) + 1, 4)) = tempRapKol
         
-   'Formatowanie caÅ‚ego skoroszytu przy wykorzystaniu Malarza FormatÃ³w
+   'Formatowanie ca³ego skoroszytu przy wykorzystaniu Malarza Formatów
      With Range("A1")
         .FormatConditions.Add Type:=xlTextString, String:="Error", TextOperator:=xlContains
         .FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
@@ -336,7 +348,7 @@ Case 1
         SkipBlanks:=False, Transpose:=False
     Application.CutCopyMode = False
     
-    'Boldowanie nagÅ‚Ã³wkÃ³w
+    'Boldowanie nag³ówków
     Range(Cells(1, 1), Cells(1, 4)).Select
     Selection.Font.Bold = True
     
@@ -344,10 +356,10 @@ Case 1
     Set rptWB = Nothing
     lColumn = 5
     lRow = lTemp
-'Przygotowanie raportu z porÃ³wnania - wersja #2
+'Przygotowanie raportu z porównania - wersja #2
 Case 2
     Application.StatusBar = "Formatting the report (Style #" & nr_raportu & ")"
-    'wrzucanie poszczegÃ³lnymi kolumnami do arkusza
+    'wrzucanie poszczególnymi kolumnami do arkusza
     ReDim tempRapKol(1 To UBound(aRaport, 1), 1 To 1)
     ReDim tempRap(1 To UBound(aRaport, 1), 1 To 1)
     
@@ -367,8 +379,8 @@ Case 2
         .AddDatabar
     End With
         
-   'Formatowanie caÅ‚ego skoroszytu przy wykorzystaniu Malarza FormatÃ³w
-   'ktÃ³ry kopiuje przygotowane formatowanie komÃ³rek z "A1" do caÅ‚ego zakresu.
+   'Formatowanie ca³ego skoroszytu przy wykorzystaniu Malarza Formatów
+   'który kopiuje przygotowane formatowanie komórek z "A1" do ca³ego zakresu.
     With Range("B2")
         '.Select
         .FormatConditions.Add Type:=xlExpression, Formula1:="=NOT(ISBLANK(B" & xR & "))=TRUE"
@@ -382,17 +394,17 @@ Case 2
         .Copy
     End With
         
-    'Przeklejenie formatowania z "B2" do caÅ‚ego zakresu
+    'Przeklejenie formatowania z "B2" do ca³ego zakresu
     Range(Cells(xR, 2), Cells(UBound(aRaport, 1), UBound(aRaport, 2) + 1)).PasteSpecial _
         Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
     Application.CutCopyMode = False
     
-    'od ktÃ³rej kolumny i wiersza majÄ… byÄ‡ schowane dane?
+    'od której kolumny i wiersza maj¹ byæ schowane dane?
     lColumn = UBound(aRaport, 2) + 2
     lRow = UBound(aRaport, 1)
 End Select
 
-'Ustawienie autoSzerokoÅ›ci kolumn w odniesieniu do ich zawartoÅ›ci, lecz AutoFit nie szerszy niÅ¼ 350
+'Ustawienie autoSzerokoœci kolumn w odniesieniu do ich zawartoœci, lecz AutoFit nie szerszy ni¿ 350
 For Each rTempCell In ActiveSheet.UsedRange.Rows(1).Cells
     If rTempCell.Column <> 1 Then
         With rTempCell.EntireColumn
@@ -410,15 +422,15 @@ With Range(Cells(1, 1), Cells(lRow, lColumn))
     .AutoFilter
 End With
 
-'Podliczenie zmian w ostatnim wierszu, dla kaÅ¼dej kolumny
+'Podliczenie zmian w ostatnim wierszu, dla ka¿dej kolumny
 With Range(Cells(lRow + 1, 2), Cells(lRow + 1, lColumn + 1))
     .FormulaR1C1 = "=COUNTA(R" & xR & "C:R[-1]C)"
     .Interior.ColorIndex = 15
 End With
     
-'Chowanie zbÄ™dnych wierszy
+'Chowanie zbêdnych wierszy
 Range(Rows(lRow + 2), Rows(lRow + 2).End(xlDown)).EntireRow.Hidden = True
-'Chowanie zbÄ™dnych kolumn
+'Chowanie zbêdnych kolumn
 Range(Columns(lColumn), Columns(lColumn).End(xlToRight)).EntireColumn.Hidden = True
 
 'rptWB.Save
@@ -432,7 +444,7 @@ End Sub
 '================================================================================
 ' Sub Update_Progress(ByVal Wartosc As Long)
 '
-' Uaktualnia progressBar o podanÄ… wartoÅ›Ä‡
+' Uaktualnia progressBar o podan¹ wartoœæ
 '================================================================================
 Sub Update_Progress(ByVal Wartosc As Long)
     With frmCompWks.ProgressBar
@@ -446,7 +458,7 @@ End Sub
 '================================================================================
 ' Sub CompareWorksheetsAll()
 '
-' PorÃ³wnywanie wszystkich arkuszy w dwÃ³ch otwartych Workbookach, komÃ³rka po komÃ³rce.
+' Porównywanie wszystkich arkuszy w dwóch otwartych Workbookach, komórka po komórce.
 ' Wraz z wygenerowaniem raportu.
 '================================================================================
 Sub CompareWorksheetsAll(ws1 As Worksheet, ws2 As Worksheet)
@@ -528,8 +540,8 @@ End Sub
 '================================================================================
 ' Sub comp_wks()
 '
-' GÅ‚owna funkcja startujÄ…ca formularz do porÃ³wnana danych. Zbiera informacje o wybranych
-' workbookach, i opcje zielenienia rÃ³Å¼nica w workbokach wajÅ›ciowych.
+' G³owna funkcja startuj¹ca formularz do porównana danych. Zbiera informacje o wybranych
+' workbookach, i opcje zielenienia ró¿nica w workbokach wajœciowych.
 '================================================================================
 Sub comp_wks()
     Dim WSNames() As String
@@ -539,22 +551,24 @@ Sub comp_wks()
     Dim WS As Worksheet
     Dim i As Long
     Dim N As Byte, M As Byte
-    Dim CompareAll As Boolean
+    Dim bCompareAll As Boolean
     
     Dim sActiveWB As String
     Dim sActiveWS As String
     Dim s2ndWB As String
     Dim s2ndWS As String
     Dim lNrRaportu As Long
+    Dim lDiffCount As Long
     
-    Dim lorkszit1, lorkszit2 As Worksheet
+    Dim s1_WS, s2_WS As Worksheet
     Dim aktywny As Workbook
-    Dim x, y, z, identical As Integer
+    Dim x, y, z, identical As Long
+    
     identical = 0
         
     bGreenActiveWks = False
     bGreen2ndWks = False
-    CompareAll = False
+    bCompareAll = False
         
     If GetWksCount = 0 Then
       MsgBox "Please open at least 2 Workbooks!", vbOKOnly
@@ -572,7 +586,7 @@ Sub comp_wks()
         End If
     Next WB
     
-    'Wgranie danych do formularz obsÅ‚ugujacego porÃ³wnywanie arkuszy excelowych
+    'Wgranie danych do formularz obs³ugujacego porównywanie arkuszy excelowych
     Load frmCompWks
     With frmCompWks
       .cboActiveWB.Clear
@@ -583,19 +597,19 @@ Sub comp_wks()
       .cmdOK.Enabled = False
       .Height = 312
     
-    'UzupeÅ‚nienie pÃ³l dla ActiveWorkbook / oraz Sheets z tego AW
+    'Uzupe³nienie pól dla ActiveWorkbook / oraz Sheets z tego AW
     .cboActiveWB.AddItem ActiveWorkbook.Name, -1
     For Each WS In Worksheets
       .cboActiveWks.AddItem WS.Name, i
       i = i + 1
     Next
       
-    'UzupeÅ‚nienie ListBoxa o pozostaÅ‚e WB
+    'Uzupe³nienie ListBoxa o pozosta³e WB
     For i = 0 To UBound(WBNames) - 1
         .cbo2ndWB.AddItem WBNames(i), i
     Next i
     
-    'UzupeÅ‚nienie o Sheets z pozostaÅ‚ych WB.
+    'Uzupe³nienie o Sheets z pozosta³ych WB.
     For i = 1 To 2
         .cboChooseRaport.AddItem i
     Next i
@@ -610,7 +624,7 @@ Sub comp_wks()
       'display it
       .Show
       
-      '.Tag True oznacza, Å¼e w formularzu zostaÅ‚ naciÅ›niÄ™ty przycisk OK i Å¼e majÄ… byÄ‡ wykonane obliczenia.
+      '.Tag True oznacza, ¿e w formularzu zosta³ naciœniêty przycisk OK i ¿e maj¹ byæ wykonane obliczenia.
       If .Tag = "True" Then
           Unload frmCompWks
           Exit Sub
@@ -625,75 +639,86 @@ Sub comp_wks()
       
       sActiveWS = .cboActiveWks.Value
       s2ndWS = .cbo2ndWks.Value
+      bCompareAll = .cboAllTabs
       
 End With
-'    If CompareAll = True Then
-'        Set rptWBAll = Workbooks.Add
-'        Application.DisplayAlerts = False
-'        While Worksheets.Count > 1
-'            Worksheets(2).Delete
-'        Wend
-'        Application.DisplayAlerts = True
-'        rptWBAll.Worksheets(1).Name = "Error Log CmpWs"
-'        rptWBAll.Worksheets(1).Range("a1") = "Active Workbook"
-'        rptWBAll.Worksheets(1).Range("b1") = "Compared Workbook"
-'        rptWBAll.Worksheets(1).Range("c1") = "Diff Count"
-'        rptWBAll.Worksheets(1).Range("a1:c1").Font.Bold = True
-'        y = 0
-'        For Each lorkszit1 In aktywny.Worksheets
-'            x = 0
-'            For Each lorkszit2 In Workbooks(s2ndWB).Worksheets
-'                If lorkszit1.Name = lorkszit2.Name Then
-'                    On Error Resume Next
-'                    CompareWorksheetsAll aktywny.Worksheets(lorkszit1.Name), _
-'                        Workbooks(s2ndWB).Worksheets(lorkszit2.Name)
-'                    On Error GoTo 0
-'                    rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 0) = lorkszit1.Name
-'                    rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 2) = lDiffCount
-'                    rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 1) = lorkszit2.Name
-'                    If lDiffCount <> 0 Then
-'                        rptWBAll.Worksheets(1).Range("a1:c1").Offset(y + 1, 0).Interior.ColorIndex = 38
-'                        identical = identical + 1
-'                    End If
-'                    x = x + 1
-'                End If
-'
-'            Next
-'            If x = 0 Then
-'                rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 0) = lorkszit1.Name
-'                rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 1) = "N/A"
-'                rptWBAll.Worksheets(1).Range("a1:c1").Offset(y + 1, 0).Interior.ColorIndex = 40
-'                identical = identical + 1
-'            End If
-'            y = y + 1
-'        Next
-'
-'        For Each lorkszit2 In Workbooks(s2ndWB).Worksheets
-'            z = 0
-'            For Each lorkszit1 In aktywny.Worksheets
-'                If lorkszit1.Name = lorkszit2.Name Then
-'                    z = z + 1
-'                End If
-'            Next
-'            If z = 0 Then
-'                rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 0) = "N/A"
-'                rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 1) = lorkszit2.Name
-'                rptWBAll.Worksheets(1).Range("a1:c1").Offset(y + 1, 0).Interior.ColorIndex = 40
-'                identical = identical + 1
-'                y = y + 1
-'            End If
-'        Next
-'
-'        rptWBAll.Worksheets(1).Activate
-'        rptWBAll.Worksheets(1).Columns("a:c").AutoFit
-'        rptWBAll.Saved = True
-'        If identical = 0 Then
-'            MsgBox "Workbooks are identical"
-'        End If
-'    Else
-        'On Error GoTo ErrHandler
-        CompareWorksheets sA_WB:=sActiveWB, sA_WS:=sActiveWS, s2_WB:=s2ndWB, s2_WS:=s2ndWS
-'    End If
+    
+'Do poprawienia!
+If bCompareAll = False Then
+    'On Error GoTo ErrHandler
+    CompareWorksheets sA_WB:=sActiveWB, sA_WS:=sActiveWS, s2_WB:=s2ndWB, s2_WS:=s2ndWS
+Else
+    Set rptWBAll = Workbooks.Add
+    Application.DisplayAlerts = False
+    While Worksheets.Count > 1
+        Worksheets(2).Delete
+    Wend
+    
+    Set aktywny = Workbooks(sActiveWB)
+    
+    Application.DisplayAlerts = True
+    
+    rptWBAll.Worksheets(1).Name = "Error Log CmpWs"
+    rptWBAll.Worksheets(1).Range("a1") = "Active Workbook"
+    rptWBAll.Worksheets(1).Range("b1") = "Compared Workbook"
+    rptWBAll.Worksheets(1).Range("c1") = "Diff Count"
+    rptWBAll.Worksheets(1).Range("a1:c1").Font.Bold = True
+    
+    y = 0
+    For Each s1_WS In Workbooks(sActiveWB).Worksheets
+        x = 0
+        For Each s2_WS In Workbooks(s2ndWB).Worksheets
+            If s1_WS.Name = s2_WS.Name Then
+                On Error Resume Next
+                
+                'CompareWorksheetsAll aktywny.Worksheets(lorkszit1.Name), _
+                    Workbooks(s2ndWB).Worksheets(lorkszit2.Name)
+                CompareWorksheets sActiveWB, s1_WS.Name, s2ndWB, s2_WS.Name
+                    
+                On Error GoTo 0
+                rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 0) = s1_WS.Name
+                rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 2) = 1 'lDiffCount - poprawiæ przekazywanie iloœci ró¿nic
+                rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 1) = s2_WS.Name
+                If lDiffCount <> 0 Then
+                    rptWBAll.Worksheets(1).Range("a1:c1").Offset(y + 1, 0).Interior.ColorIndex = 38
+                    identical = identical + 1
+                End If
+                x = x + 1
+            End If
+
+        Next
+        If x = 0 Then
+            rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 0) = s1_WS.Name
+            rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 1) = "N/A"
+            rptWBAll.Worksheets(1).Range("a1:c1").Offset(y + 1, 0).Interior.ColorIndex = 40
+            identical = identical + 1
+        End If
+        y = y + 1
+    Next
+
+    For Each s2_WS In Workbooks(s2ndWB).Worksheets
+        z = 0
+        For Each s1_WS In Workbooks(sActiveWB).Worksheets
+            If s1_WS.Name = s2_WS.Name Then
+                z = z + 1
+            End If
+        Next
+        If z = 0 Then
+            rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 0) = "N/A"
+            rptWBAll.Worksheets(1).Range("a1").Offset(y + 1, 1) = s2_WS.Name
+            rptWBAll.Worksheets(1).Range("a1:c1").Offset(y + 1, 0).Interior.ColorIndex = 40
+            identical = identical + 1
+            y = y + 1
+        End If
+    Next
+
+    rptWBAll.Worksheets(1).Activate
+    rptWBAll.Worksheets(1).Columns("a:c").AutoFit
+    rptWBAll.Saved = True
+    If identical = 0 Then
+        MsgBox "Workbooks are identical"
+    End If
+End If
 'Exit Sub
 'ErrHandler:
 '    Select Case Err.Number
@@ -712,7 +737,7 @@ End Sub
 '================================================================================
 ' Function GetWksCount() As Long
 '
-' Zwraca liczbowo iloÅ›Ä‡ otwartych WorkbookÃ³w, bez PERSONAL.XLSB
+' Zwraca liczbowo iloœæ otwartych Workbooków, bez PERSONAL.XLSB
 '================================================================================
 Private Function GetWksCount() As Long
     Dim WB As Workbook
