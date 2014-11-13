@@ -26,6 +26,7 @@ Private Sub cbo2ndWks_Change()
 End Sub
 
 Private Sub SprawdzCombosy()
+'Dopisaæ sprawdzanie ListBoxa!
   Dim i1 As Long, i2 As Long, i3 As Long
   With Me
     i1 = cboActiveWks.ListIndex
@@ -43,6 +44,7 @@ Private Sub cboAllTabs_Click()
     With Me
         .cboActiveWks.Enabled = Not (.cboActiveWks.Enabled)
         .cbo2ndWks.Enabled = Not (.cbo2ndWks.Enabled)
+        .cboChooseRaport.Enabled = Not (.cboChooseRaport.Enabled)
     End With
 End Sub
 
@@ -54,12 +56,9 @@ Private Sub cmdCancel_Click()
 End Sub
 
 Private Sub cmdOK_Click()
-    greenActiveWorkbookCompareWorksheets = Me.CheckBox1.Value
-    greenWorkbooktoCompareWorksheets = Me.CheckBox2.Value
-    CompareAll = Me.cboAllTabs.Value
     With Me
         .Tag = "False"
-        .Height = 334
+        '.Height = 334
         .Hide
     End With
 End Sub
@@ -76,17 +75,17 @@ With Me.cbo2ndWB
           If .Selected(i) Then
             sPomoc = .List(i)
           End If
-      Next i
-      i = 0
+    Next i
       
-      'Check, czy przypadkiem nie zaznaczono pustego wiersza w ListBoxie.
-      If sPomoc = vbNullString Then
-        Exit Sub
-      End If
+    'Check, czy przypadkiem nie zaznaczono pustego wiersza w ListBoxie.
+    If sPomoc = vbNullString Then
+       Exit Sub
+    End If
       
     Set WB = Workbooks(sPomoc)
     frmCompWks.cbo2ndWks.Clear
     
+    i = 0
     For Each WS In WB.Worksheets
         frmCompWks.cbo2ndWks.AddItem WS.Name, i
         i = i + 1
