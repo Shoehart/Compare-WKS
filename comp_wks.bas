@@ -3,7 +3,7 @@ Option Explicit
 
 'Need to be done:
 '1. Make it EX2013 compatibile, so 64bit
-'2. Code cleaning
+'2. Code cleaning - on going
 '3. Translation all comments to english
 '4. Compare many worksheets
 '5. Check for #REF
@@ -30,6 +30,8 @@ Private Const BSHIFT_32 = 4294967296# ' 2 ^ 32
 
 Public bGreenActiveWks As Boolean
 Public bGreen2ndWks As Boolean
+Public bCzyZrobicRaport As Boolean
+Public lDiffCount As Double
 
 Dim memUseStart As Long
 Dim memUseEnd As Long
@@ -41,16 +43,6 @@ Dim uFreq As UINT64
 Dim dblElapsed As Double
 
 Dim rptWBAll As Workbook
-
-Private Function U64Dbl(U64 As UINT64) As Double
-    Dim lDbl As Double, hDbl As Double
-    lDbl = U64.LowPart
-    hDbl = U64.HighPart
-    If lDbl < 0 Then lDbl = lDbl + BSHIFT_32
-    If hDbl < 0 Then hDbl = hDbl + BSHIFT_32
-    U64Dbl = lDbl + BSHIFT_32 * hDbl
-End Function
-
 '================================================================================
 ' Sub GetMemUsage
 '
@@ -63,6 +55,15 @@ Dim objSWbemServices As Object
       "Win32_Process.Handle='" & _
       GetCurrentProcessId & "'").WorkingSetSize / 1024
   Set objSWbemServices = Nothing
+End Function
+
+Private Function U64Dbl(U64 As UINT64) As Double
+    Dim lDbl As Double, hDbl As Double
+    lDbl = U64.LowPart
+    hDbl = U64.HighPart
+    If lDbl < 0 Then lDbl = lDbl + BSHIFT_32
+    If hDbl < 0 Then hDbl = hDbl + BSHIFT_32
+    U64Dbl = lDbl + BSHIFT_32 * hDbl
 End Function
 
 '================================================================================
@@ -104,7 +105,6 @@ Dim lRow As Long, lColumn As Long, _
     lRow_2 As Long, lColumn_2 As Long
 
 Dim lMaxR As Long, lMaxC As Long
-Dim lDiffCount As Long
 Dim lDzielnik As Long, lCount As Double
 Dim lNrRaportu As Long
 
@@ -118,8 +118,8 @@ Dim rTempRng As Range
 Dim rptWB As Workbook
 Dim wb1 As Workbook, wb2 As Workbook
 
-Dim bCzyZrobicRaport As Boolean
 Dim bCzyPrzeniescNaglowki As Boolean
+Dim bCompareAll As Boolean
 
 'Turn off all Excel variable slowing down program
 With Application
@@ -172,6 +172,7 @@ With frmCompWks
     .ProgressBar.Max = lCount
     lNrRaportu = .cboChooseRaport.Value
     bCzyPrzeniescNaglowki = .cboHeader.Value
+    bCompareAll = .cboAllTabs.Value
     bGreenActiveWks = .CheckBox1.Value
     bGreen2ndWks = .CheckBox2.Value
 End With
@@ -266,13 +267,21 @@ End If
 
 'GarbageCollector ;)
 Set rTempRng = Nothing
-Unload frmCompWks
 Erase tempA, tempB
+
+If bCompareAll Then
+    frmCompWks.Hide
+Else
+    Unload frmCompWks
+End If
 
 Call Pomiar_Koniec(1)
 
-Przygotowanie_Raportu nr_raportu:=lNrRaportu, czyNaglowki:=bCzyPrzeniescNaglowki, aRaport:=tempRaport, DiffCount:=lDiffCount
-   
+If bCzyZrobicRaport Then
+    Przygotowanie_Raportu nr_raportu:=lNrRaportu, czyNaglowki:=bCzyPrzeniescNaglowki, aRaport:=tempRaport, DiffCount:=lDiffCount
+    bCzyZrobicRaport = False
+End If
+
 'Turn on all Excel variable, turned off at the beggining of the script
 With Application
     .EnableEvents = True
@@ -288,8 +297,8 @@ End Sub
 '================================================================================
 ' Przygotowanie_Raportu(ByVal nr_raportu As Long, ByRef aRaport() As Variant, ByVal DiffCount As Long)
 '
-' Sub do przygotowywania raportu z porównywania miêdzy sob¹ arkuszy. Na chwilê obecn¹
-' dostêpne s¹ dwa. Uruchamia siê to przekazuj¹c parametr liczbowy (od 1 do 2).
+' Prepare raport from comparing worksheets. At the moment there are 2 raports availible
+' They are triggered by nr_raportu variable, with value in betwean two values: 1 or 2
 '================================================================================
 Sub Przygotowanie_Raportu(ByVal nr_raportu As Long, _
                           ByVal czyNaglowki As Boolean, _
@@ -334,6 +343,21 @@ Case 1
                 lTemp = lTemp + 1
                 'ActiveCell.FormulaR1C1 = "Jakiœ link"
                 'ActiveSheet.Hyperlinks.Add Anchor:=Selection, Address:="124_porownywaczMoj.xlsm", TextToDisplay:="Jakiœ link"
+                
+'    Check if hyperlinks are required
+'       Dim sHyperlinkTextValue As String
+'       sHyperlinkTextValue = HyperlinkTextConversion(Sheet1Text)
+'       wksReport.Cells(lReportLine, lCurrentReportColumn).NumberFormat = wksWorksheet1.Cells(intwbkOneRow, lngColumn).NumberFormat
+'       wksReport.Cells(lReportLine, lCurrentReportColumn).Value2 = "=HYPERLINK(" & Chr(34) & wbkOne.FullName & _
+'          "#'" & wksWorksheet1.Name & "'!" & wksWorksheet1.Cells(intwbkOneRow, lngHyperlinkColumn).Address & Chr(34) & _
+'          "," & Chr(34) & sHyperlinkTextValue & Chr(34) & ")"
+'       lCurrentReportColumn = lCurrentReportColumn + 1
+'       sHyperlinkTextValue = HyperlinkTextConversion(Sheet2Text)
+'       wksReport.Cells(lReportLine, lCurrentReportColumn).NumberFormat = wksWorksheet2.Cells(intwbkTwoRow, lngColumn).NumberFormat
+'       wksReport.Cells(lReportLine, lCurrentReportColumn).Value2 = "=HYPERLINK(" & Chr(34) & wbkTwo.FullName & _
+'          "#'" & wksWorksheet2.Name & "'!" & wksWorksheet2.Cells(intwbkTwoRow, lngHyperlinkColumn).Address & Chr(34) & _
+'          "," & Chr(34) & sHyperlinkTextValue & Chr(34) & ")"
+                
             End If
         Next lColumn
     Next lRow
@@ -345,14 +369,14 @@ Case 1
         Range("C1").Value2 = "Wartoœæ z arkusza #1"
         Range("D1").Value2 = "Wartoœæ z arkusza #2"
     End With
-    Range(Cells(2, 1), Cells(UBound(tempRapKol, 1) + 1, 4)) = tempRapKol
+    Range(Cells(2, 1), Cells(UBound(tempRapKol, 1) + 1, UBound(tempRapKol, 2))) = tempRapKol
         
     'Formating titles: Bold
-    Range(Cells(1, 1), Cells(1, 4)).Font.Bold = True
+    'Range(Cells(1, 1), Cells(1, UBound(tempRapKol, 2) + 1)).Font.Bold = True
     
     'rptWB.Save
     Set rptWB = Nothing
-    lColumn = 5
+    lColumn = UBound(tempRapKol, 2) + 1
     lRow = lTemp
     
 'Prepare raport #2
@@ -382,15 +406,20 @@ End Select
 'Formating raport with "Table"
 With ActiveSheet
     'Checking if future Table will have Headers or not and creation of Table with few variables
-    If xR = 1 Then
-        .ListObjects.Add(xlSrcRange, Range(Cells(1, 1), Cells(lRow, lColumn - 1)), , xlNo).Name = "Raport_" & nr_raportu & Chr(34)
-    Else
+    If nr_raportu = 1 Then
+        xR = 2
         .ListObjects.Add(xlSrcRange, Range(Cells(1, 1), Cells(lRow, lColumn - 1)), , xlYes).Name = "Raport_" & nr_raportu & Chr(34)
+    Else
+        If xR = 1 Then
+            .ListObjects.Add(xlSrcRange, Range(Cells(1, 1), Cells(lRow, lColumn - 1)), , xlNo).Name = "Raport_" & nr_raportu & Chr(34)
+        Else
+            .ListObjects.Add(xlSrcRange, Range(Cells(1, 1), Cells(lRow, lColumn - 1)), , xlYes).Name = "Raport_" & nr_raportu & Chr(34)
+        End If
     End If
     With .ListObjects("Raport_" & nr_raportu & Chr(34))
         .ShowTableStyleRowStripes = False
         .ShowTotals = True
-        .ShowAutoFilter = True
+        '.ShowAutoFilter = True
         .TableStyle = "TableStyleMedium2"
         For i = 2 To .ListColumns.Count
           .ListColumns(i).TotalsCalculation = xlTotalsCalculationCount
@@ -408,8 +437,7 @@ If nr_raportu <> 1 Then
                 .PatternColorIndex = xlAutomatic
                 .Color = 5296274
         End With
-        .FormatConditions(1).StopIfTrue = False
-        '.Copy
+        .FormatConditions(1).StopIfTrue = True
     End With
 End If
     
@@ -420,6 +448,7 @@ i = i + 1
     If nr_raportu <> 1 Then
         If rTempCell.Column <> 1 Then
             With rTempCell.EntireColumn
+            'Poprawiæ zczytywanie z podsumowania tabelki. Odniesienia bezpoœrednie to z³y pomys³!
                 If Cells(lRow + 1, i) = 0 Then
                     .ColumnWidth = 2
                 Else
@@ -435,9 +464,14 @@ i = i + 1
         End If
     Else
         With rTempCell.EntireColumn
-            .AutoFit
-            If .ColumnWidth > 60 Then
-               .ColumnWidth = 60
+            If Cells(lRow + 1, i) = 0 Then
+                .ColumnWidth = 2
+            Else
+                .AutoFit
+                Cells(1, i).Interior.ColorIndex = 50
+                If .ColumnWidth > 60 Then
+                   .ColumnWidth = 60
+                End If
             End If
         End With
     End If
@@ -471,87 +505,6 @@ Sub Update_Progress(ByVal Wartosc As Long)
     End With
     DoEvents
 End Sub
-'================================================================================
-' Sub CompareWorksheetsAll()
-'
-' Porównywanie wszystkich arkuszy w dwóch otwartych Workbookach, komórka po komórce.
-' Wraz z wygenerowaniem raportu.
-'================================================================================
-Sub CompareWorksheetsAll(ws1 As Worksheet, ws2 As Worksheet)
-
-Dim r As Long, c As Integer
-Dim lRow_1 As Long, lRow_2 As Long, lColumn_1 As Integer, lColumn_2 As Integer
-Dim lMaxR As Long, lMaxC As Integer, tempS1 As String, tempS2 As String
-Dim rptWS As Worksheet, lDiffCount As Long
-
-    Application.ScreenUpdating = False
-    Application.StatusBar = "Creating the report..."
-
-    Application.DisplayAlerts = False
-    Set rptWS = Worksheets.Add(after:=Worksheets(Worksheets.Count))
-    rptWS.Name = ws1.Name
-    
-    Application.DisplayAlerts = True
-    With ws1.UsedRange
-        lRow_1 = .Rows.Count
-        lColumn_1 = .Columns.Count
-    End With
-    With ws2.UsedRange
-        lRow_2 = .Rows.Count
-        lColumn_2 = .Columns.Count
-    End With
-    lMaxR = lRow_1
-    lMaxC = lColumn_1
-    If lMaxR < lRow_2 Then lMaxR = lRow_2
-    If lMaxC < lColumn_2 Then lMaxC = lColumn_2
-    lDiffCount = 0
-    For c = 1 To lMaxC
-        Application.StatusBar = "Comparing cells " & Format(c / lMaxC, "0 %") & "..."
-        For r = 1 To lMaxR
-            tempS1 = ""
-            tempS2 = ""
-            On Error Resume Next
-            tempS1 = ws1.Cells(r, c).Value
-            tempS2 = ws2.Cells(r, c).Value
-            On Error GoTo 0
-            If tempS1 <> tempS2 Then
-                lDiffCount = lDiffCount + 1
-                Cells(r, c).Formula = "'" & tempS1 & " <> " & tempS2
-                Cells(r, c).Interior.ColorIndex = 44
-                If bGreenActiveWks = True Then
-                    ws1.Cells(r, c).Interior.ColorIndex = 43
-                End If
-                If bGreen2ndWks = True Then
-                    ws2.Cells(r, c).Interior.ColorIndex = 43
-                End If
-            End If
-        Next r
-    Next c
-    Application.StatusBar = "Formatting the report..."
-    With Range(Cells(1, 1), Cells(lMaxR, lMaxC))
-        With .Borders
-            .LineStyle = xlContinuous
-            .Weight = xlHairline
-        End With
-        On Error GoTo 0
-    End With
-    Range(Cells(lMaxR + 1, 1), Cells(lMaxR + 1, lMaxC)).FormulaR1C1 = "=COUNTA(R1C:R[-1]C)"
-    Cells.Select
-    Cells.EntireColumn.AutoFit
-    Rows(lMaxR + 1).Interior.ColorIndex = 15
-    Rows(lMaxR + 2).Select
-    Range(Selection, Selection.End(xlDown)).Select
-    Selection.EntireRow.Hidden = True
-'    rptWB.Saved = True
-    Application.DisplayAlerts = False
-    If lDiffCount = 0 Then
-        rptWS.Delete
-    End If
-    Application.DisplayAlerts = True
-    Set rptWS = Nothing
-    Application.StatusBar = False
-    Application.ScreenUpdating = True
-End Sub
 
 '================================================================================
 ' Sub comp_wks()
@@ -560,8 +513,6 @@ End Sub
 ' workbookach, i opcje zielenienia ró¿nica w workbokach wajœciowych.
 '================================================================================
 Sub comp_wks()
-    Dim WSNames() As String
-    Dim WBNames() As String
     Dim ws1 As Worksheet, ws2 As Worksheet
     Dim WB As Workbook
     Dim WS As Worksheet
@@ -569,12 +520,11 @@ Sub comp_wks()
     Dim N As Byte
     Dim bCompareAll As Boolean
     
-    Dim sActiveWB As String
-    Dim sActiveWS As String
+    Dim s1stWB As String
+    Dim s1stWS As String
     Dim s2ndWB As String
     Dim s2ndWS As String
     Dim lNrRaportu As Long
-    Dim lDiffCount As Long
     
     Dim s1_WS, s2_WS As Worksheet
     Dim aktywny As Workbook
@@ -591,39 +541,42 @@ Sub comp_wks()
       Exit Sub
     End If
     
-    i = 0
-    ReDim WBNames(0 To Workbooks.Count - 1)
-    For Each WB In Workbooks
-        If (WB.Name <> ActiveWorkbook.Name) And (WB.Name <> "PERSONAL.XLSB") Then
-            ReDim WSNames(0 To WB.Worksheets.Count)
-            WBNames(i) = WB.Name
-            i = i + 1
-        End If
-    Next WB
-    
     'Settings for macro, set in form.
     Load frmCompWks
     With frmCompWks
-      .cboActiveWB.Clear
-      .cboActiveWks.Clear
-      .cbo2ndWks.Clear
+      .cbo1stWB.Clear
       .cbo2ndWB.Clear
+      .cbo1stWks.Clear
+      .cbo2ndWks.Clear
       .cboChooseRaport.Clear
       .cmdOK.Enabled = True
+      .cboHeader.Value = False
+      .cboHeader.Enabled = True
       .Height = 312
     
     i = 0
-    'Filling field with ActiveWorkbook name / and Sheets names in next field
-    .cboActiveWB.AddItem ActiveWorkbook.Name, -1
-    For Each WS In Worksheets
-      .cboActiveWks.AddItem WS.Name, i
+    'Filling field with 1stWorkbook name / and Sheets names in next field
+    For Each WB In Workbooks
+        If WB.Name <> "PERSONAL.XLSB" Then
+            .cbo1stWB.AddItem WB.Name, i
+            i = i + 1
+        End If
+    Next
+    
+    i = 0
+    For Each WS In Workbooks(.cbo1stWB.List(0)).Worksheets
+      .cbo1stWks.AddItem WS.Name, i
       i = i + 1
     Next
       
+    i = 0
     'Filling ListBox with the name of the rest WB
-    For i = 0 To UBound(WBNames) - 1
-        .cbo2ndWB.AddItem WBNames(i), i
-    Next i
+    For Each WB In Workbooks
+        If (WB.Name <> "PERSONAL.XLSB") And (WB.Name <> .cbo1stWB.List(0)) Then
+            .cbo2ndWB.AddItem WB.Name, i
+            i = i + 1
+        End If
+    Next
     
     i = 0
     For Each WS In Workbooks(.cbo2ndWB.List(0)).Worksheets
@@ -631,54 +584,51 @@ Sub comp_wks()
         i = i + 1
     Next
 
-    'Fill rest of Sheets from the rest of WB
+    'List of type of raports
     For i = 1 To 2
         .cboChooseRaport.AddItem i
     Next i
       
-    Erase WSNames(), WBNames()
-    
-      .cboActiveWB.ListIndex = 0
-      .cboActiveWks.ListIndex = 0
-      .cbo2ndWks.ListIndex = 0 'set to 0 for testing. Need to be changed to "-1"
+      .cbo1stWB.ListIndex = 0
+      .cbo1stWks.ListIndex = 0
+      .cbo2ndWks.ListIndex = 0
       .cboChooseRaport.ListIndex = 0
-    
+      
       'display it
       .Show
       
       '.Tag True oznacza, ¿e w formularzu zosta³ naciœniêty przycisk OK i ¿e maj¹ byæ wykonane obliczenia.
       If .Tag = "True" Then
-          Unload frmCompWks
+          .Hide
           Exit Sub
       End If
       
-      sActiveWB = .cboActiveWB.Value
+      s1stWB = .cbo1stWB.Value
       For i = 0 To .cbo2ndWB.ListCount - 1
           If .cbo2ndWB.Selected(i) Then
               s2ndWB = .cbo2ndWB.List(i)
+              x = x + 1
           End If
       Next i
       
-      sActiveWS = .cboActiveWks.Value
+      If x = 0 Then
+        s2ndWB = .cbo2ndWB.List(0)
+      End If
+      
+      s1stWS = .cbo1stWks.Value
       s2ndWS = .cbo2ndWks.Value
       bCompareAll = .cboAllTabs
       
 End With
     
-'Do poprawienia!
 If bCompareAll = False Then
-    'On Error GoTo ErrHandler
-    CompareWorksheets sA_WB:=sActiveWB, sA_WS:=sActiveWS, s2_WB:=s2ndWB, s2_WS:=s2ndWS
+    On Error GoTo ErrHandler
+    bCzyZrobicRaport = True
+    CompareWorksheets sA_WB:=s1stWB, sA_WS:=s1stWS, s2_WB:=s2ndWB, s2_WS:=s2ndWS
 Else
-    With Application
-        .SheetsInNewWorkbook = 1
-        .DisplayAlerts = False
-    End With
-    
     Set rptWBAll = Workbooks.Add
-    Set aktywny = Workbooks(sActiveWB)
-    
-    Application.DisplayAlerts = True
+    Set aktywny = Workbooks(s1stWB)
+    bCzyZrobicRaport = False
     
     With rptWBAll.Worksheets(1)
         .Name = "Error Log CmpWs"
@@ -689,80 +639,65 @@ Else
     End With
     
     y = 0
-    For Each s1_WS In Workbooks(sActiveWB).Worksheets
+    For Each s1_WS In Workbooks(s1stWB).Worksheets
         x = 0
         For Each s2_WS In Workbooks(s2ndWB).Worksheets
             If s1_WS.Name = s2_WS.Name Then
                 On Error Resume Next
                 
-                'CompareWorksheetsAll aktywny.Worksheets(lorkszit1.Name), _
-                    Workbooks(s2ndWB).Worksheets(lorkszit2.Name)
-                CompareWorksheets sActiveWB, s1_WS.Name, s2ndWB, s2_WS.Name
+                'Running main comparing code.
+                CompareWorksheets s1stWB, s1_WS.Name, s2ndWB, s2_WS.Name
                     
                 On Error GoTo 0
                 With rptWBAll.Worksheets(1)
-                    .Range("a1").Offset(y + 1, 0) = s1_WS.Name
-                    .Range("a1").Offset(y + 1, 2) = 1 'lDiffCount - poprawiæ przekazywanie iloœci ró¿nic
-                    .Range("a1").Offset(y + 1, 1) = s2_WS.Name
+                    .Range("A1").Offset(y + 1, 0) = s1_WS.Name
+                    .Range("A1").Offset(y + 1, 1) = s2_WS.Name
+                    .Range("A1").Offset(y + 1, 2) = lDiffCount
                     If lDiffCount <> 0 Then
-                        .Range("a1:c1").Offset(y + 1, 0).Interior.ColorIndex = 38
+                        .Range("A1:C1").Offset(y + 1, 0).Interior.ColorIndex = 38
                         identical = identical + 1
                     End If
                     x = x + 1
                 End With
             End If
         Next
+        
         If x = 0 Then
         With rptWBAll.Worksheets(1)
-            .Range("a1").Offset(y + 1, 0) = s1_WS.Name
-            .Range("a1").Offset(y + 1, 1) = "N/A"
-            .Range("a1:c1").Offset(y + 1, 0).Interior.ColorIndex = 40
+            .Range("A1").Offset(y + 1, 0) = s1_WS.Name
+            .Range("A1").Offset(y + 1, 1) = "N/A"
+            .Range("A1:C1").Offset(y + 1, 0).Interior.ColorIndex = 40
             identical = identical + 1
         End With
         End If
         y = y + 1
     Next
 
-    For Each s2_WS In Workbooks(s2ndWB).Worksheets
-        z = 0
-        For Each s1_WS In Workbooks(sActiveWB).Worksheets
-            If s1_WS.Name = s2_WS.Name Then
-                z = z + 1
-            End If
-        Next
-        If z = 0 Then
-        With rptWBAll.Worksheets(1)
-            .Range("A1").Offset(y + 1, 0) = "N/A"
-            .Range("A1").Offset(y + 1, 1) = s2_WS.Name
-            .Range("A1:C1").Offset(y + 1, 0).Interior.ColorIndex = 40
-            identical = identical + 1
-            y = y + 1
-        End With
-        End If
-    Next
-    
     With rptWBAll.Worksheets(1)
         .Activate
         .Columns("A:C").AutoFit
     End With
-    rptWBAll.Saved = True
+    
     If identical = 0 Then
         MsgBox "Workbooks are identical"
     End If
+
+    Unload frmCompWks
+
 End If
-'Exit Sub
-'ErrHandler:
-'    Select Case Err.Number
-'        Case 9
-'            Call MsgBox(Err.Description & vbCrLf & vbCrLf & "No such worksheet", vbCritical + vbOKOnly, "Error")
-'            Err.Clear
-'            Resume Next
-'        Case Else
-'        ' All outstanding errors
-'            MsgBox Err.Number & ": " & Error.Description
-'            Err.Clear
-'            Resume Next
-'    End Select
+Exit Sub
+ErrHandler:
+    Select Case Err.Number
+        Case 9
+            Call MsgBox(Err.Description & vbCrLf & vbCrLf & "No such worksheet", vbCritical + vbOKOnly, "Error")
+            Err.Clear
+            Resume Next
+        Case Else
+        ' All outstanding errors
+            MsgBox Err.Number & ": " & Err.Description
+            Err.Clear
+            Resume Next
+    End Select
 End Sub
 
 '================================================================================
@@ -780,5 +715,5 @@ Private Function GetWksCount() As Long
           N = N + 1
       End If
     Next WB
-    GetWksCount = N - 1
+    GetWksCount = N
 End Function
