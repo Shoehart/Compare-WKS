@@ -2,13 +2,15 @@ Attribute VB_Name = "Comp_wks"
 Option Explicit
 
 'Need to be done:
-'1. Make it EX2013 compatibile, so 64bit
+'1. Make it EX2013 compatibile
 '2. Code cleaning - on going
-'3. Translation all comments to english
-'4. Compare many worksheets
+'3. Translation all comments to english - DONE!
+'4. Compare many worksheets - DONE!
 '5. Check for #REF
 '6. AutoFilter without last row in raport - DONE!
 '7. Hiperlinki in raports to apropriate worksheets
+'8. Bug - Ocasionaly "Out of Memory"
+'9. 64bit ready
 
 Private Type UINT64
     LowPart As Long
@@ -36,7 +38,7 @@ Public lDiffCount As Double
 Dim memUseStart As Long
 Dim memUseEnd As Long
     
-'zmienne do timera
+'Variables for timers
 Dim uStart As UINT64
 Dim uEnd As UINT64
 Dim uFreq As UINT64
@@ -150,7 +152,7 @@ End With
 'Max values for number of rows and columns for two compared worksheets. It is important
 'for raport generation.
 If lMaxR < lRow_2 Then lMaxR = lRow_2
-If (lMaxC < lColumn_2) Or (lMaxC > 200) Then lMaxC = lColumn_2 'zabezpieczenie przed b³êdem w arkuszu (np. pokolorowany ca³a kolumna, co zwraca bêdne wartoœci dla UsedRange
+If (lMaxC < lColumn_2) Or (lMaxC > 200) Then lMaxC = lColumn_2 'zabezpieczenie przed bÅ‚Ä™dem w arkuszu (np. pokolorowany caÅ‚a kolumna, co zwraca bÄ™dne wartoÅ›ci dla UsedRange
 
 'Copy all data from worksheets to array (but, column by column - to evade "Out of Memory" error)
 ReDim tempA(1 To lRow_1, 1 To 1)
@@ -341,8 +343,8 @@ Case 1
                 tempRapKol(lTemp, 3) = "'" & Mid(aRaport(lRow, lColumn), 2, InStr(aRaport(lRow, lColumn), "<>") - 3)
                 tempRapKol(lTemp, 4) = "'" & Right(aRaport(lRow, lColumn), Len(aRaport(lRow, lColumn)) - InStr(aRaport(lRow, lColumn), "<>") - 2)
                 lTemp = lTemp + 1
-                'ActiveCell.FormulaR1C1 = "Jakiœ link"
-                'ActiveSheet.Hyperlinks.Add Anchor:=Selection, Address:="124_porownywaczMoj.xlsm", TextToDisplay:="Jakiœ link"
+                'ActiveCell.FormulaR1C1 = "JakiÅ› link"
+                'ActiveSheet.Hyperlinks.Add Anchor:=Selection, Address:="124_porownywaczMoj.xlsm", TextToDisplay:="JakiÅ› link"
                 
 '    Check if hyperlinks are required
 '       Dim sHyperlinkTextValue As String
@@ -364,10 +366,10 @@ Case 1
     
     'Column by column
     With ActiveSheet
-        Range("A1").Value2 = "Adres komórki"
+        Range("A1").Value2 = "Adres komÃ³rki"
         Range("B1").Value2 = "MEMBER"
-        Range("C1").Value2 = "Wartoœæ z arkusza #1"
-        Range("D1").Value2 = "Wartoœæ z arkusza #2"
+        Range("C1").Value2 = "WartoÅ›Ä‡ z arkusza #1"
+        Range("D1").Value2 = "WartoÅ›Ä‡ z arkusza #2"
     End With
     Range(Cells(2, 1), Cells(UBound(tempRapKol, 1) + 1, UBound(tempRapKol, 2))) = tempRapKol
         
@@ -448,7 +450,7 @@ i = i + 1
     If nr_raportu <> 1 Then
         If rTempCell.Column <> 1 Then
             With rTempCell.EntireColumn
-            'Poprawiæ zczytywanie z podsumowania tabelki. Odniesienia bezpoœrednie to z³y pomys³!
+            'PoprawiÄ‡ zczytywanie z podsumowania tabelki. Odniesienia bezpoÅ›rednie to zÅ‚y pomysÅ‚!
                 If Cells(lRow + 1, i) = 0 Then
                     .ColumnWidth = 2
                 Else
@@ -494,7 +496,7 @@ End Sub
 '================================================================================
 ' Sub Update_Progress(ByVal Wartosc As Long)
 '
-' Uaktualnia progressBar o podan¹ wartoœæ
+' Uaktualnia progressBar o podanÄ… wartoÅ›Ä‡
 '================================================================================
 Sub Update_Progress(ByVal Wartosc As Long)
     With frmCompWks.ProgressBar
@@ -509,8 +511,13 @@ End Sub
 '================================================================================
 ' Sub comp_wks()
 '
-' G³owna funkcja startuj¹ca formularz do porównana danych. Zbiera informacje o wybranych
-' workbookach, i opcje zielenienia ró¿nica w workbokach wajœciowych.
+' Author: Marcin H
+' Version: early beta v 0.3
+' Date: 18/10/2014
+' Last Update: 21/11/2014
+'
+' Main function. Starts form, gathers data.
+' Responsilbe for multi_workbook comparision.
 '================================================================================
 Sub comp_wks()
     Dim ws1 As Worksheet, ws2 As Worksheet
@@ -597,7 +604,7 @@ Sub comp_wks()
       'display it
       .Show
       
-      '.Tag True oznacza, ¿e w formularzu zosta³ naciœniêty przycisk OK i ¿e maj¹ byæ wykonane obliczenia.
+      '.Tag True means, than in form OK button was clicked and code has to be executed as is
       If .Tag = "True" Then
           .Hide
           Exit Sub
@@ -632,8 +639,8 @@ Else
     
     With rptWBAll.Worksheets(1)
         .Name = "Error Log CmpWs"
-        .Range("A1") = "Active Workbook"
-        .Range("B1") = "Compared Workbook"
+        .Range("A1") = "1st Workbook"
+        .Range("B1") = "2nd Workbook"
         .Range("C1") = "Diff Count"
         .Range("A1:C1").Font.Bold = True
     End With
